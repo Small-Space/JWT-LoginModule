@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jwt-auth-lib"
+version = "1.0.0"
+description = "与业务解耦的 FastAPI JWT 认证组件（技术库），支持 Header/Cookie 双通道、刷新令牌、密码哈希"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "python-jose[cryptography]>=3.3",
+    "passlib[bcrypt]==1.7.4",
+    "bcrypt==4.0.1",
+    "pydantic>=2.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["jwt_auth*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
