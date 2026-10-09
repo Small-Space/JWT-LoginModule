@@ -194,9 +194,4 @@ py -3.12 -m venv .venv
 6. **密码重置令牌**（v1.1.0）：`create_password_reset_token` / `verify_password_reset_token`（type=`reset`，默认 15 分钟有效），送达通道（邮件/短信）由业务侧实现。
 7. **生产级令牌交付**（v1.2.0）：refresh 令牌仅 HttpOnly Cookie 交付，防 XSS 窃取；前端无需管理 refresh 令牌。
 
-## 十一、迁移回原项目的映射（如需要回写）
 
-- 原 `auth/services.py` → 本库 `jwt_auth/security.py`（`create_token(data, expires_delta)` 仍可直接调用，签名兼容）
-- 原 `auth/routers.py` 的 `protected_route` → `auth_deps.get_current_identity`
-- 原登录路由的 Cookie 行为 → `create_auth_router` 默认行为一致（key=`access_token`）
-- 原项目若继续使用，可将 `auth/` 模块整体替换为对本库的薄封装 + 业务查询函数。
