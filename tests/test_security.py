@@ -9,12 +9,14 @@ from jose import JWTError, jwt
 from jwt_auth.config import JWTSettings
 from jwt_auth.security import (
     create_access_token,
+    create_password_reset_token,
     create_refresh_token,
     decode_token,
     get_subject,
     hash_password,
     is_token_of_type,
     verify_password,
+    verify_password_reset_token,
 )
 
 SETTINGS = JWTSettings(secret_key="test-secret-key")
@@ -62,6 +64,38 @@ def test_get_subject_ok_and_missing():
     # 缺少 sub 的令牌
     token_no_sub = create_access_token(data={"foo": 1}, settings=SETTINGS)
     assert get_subject(token_no_sub, SETTINGS) is None
+
+
+# ---------------------------------------------------------------------------
+# 密码重置令牌（找回通道）
+# ---------------------------------------------------------------------------
+def test_password_reset_token_roundtrip():
+    token = create_password_reset_token(data={"sub": "alice"}, settings=SETTINGS)
+    assert verify_password_reset_token(token, SETTINGS) == "alice"
+
+
+def test_password_reset_token_type_gate():
+    # access 令牌不能当重置令牌用
+    access = create_access_token(data={"sub": "alice"}, settings=SETTINGS)
+    assert verify_password_reset_token(access, SETTINGS) is None
+    # 重置令牌也不是 access 类型
+    reset = create_password_reset_token(data={"sub": "alice"}, settings=SETTINGS)
+    payload = decode_token(reset, SETTINGS)
+    assert not is_token_of_type(payload, "access", SETTINGS)
+
+
+def test_password_reset_token_expired_rejected():
+    token = create_password_reset_token(
+        data={"sub": "alice"},
+        settings=SETTINGS,
+        expires_delta=timedelta(seconds=-10),  # 已过期
+    )
+    assert verify_password_reset_token(token, SETTINGS) is None
+
+
+def test_password_reset_token_wrong_secret_rejected():
+    token = create_password_reset_token(data={"sub": "alice"}, settings=SETTINGS)
+    assert verify_password_reset_token(token, JWTSettings(secret_key="other")) is None
 
 
 # ---------------------------------------------------------------------------

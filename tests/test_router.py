@@ -107,6 +107,9 @@ def test_refresh_exchanges_new_access_token():
 def test_refresh_with_access_token_rejected_401():
     login = client.post("/auth/login", json={"username": "alice", "password": "pass123"})
     access = login.json()["access_token"]
+    # 生产逻辑：refresh 优先读 HttpOnly Cookie。清掉 Cookie 使 body 成为唯一
+    # token 来源，才能验证"access_token 不能冒充 refresh_token"这一语义。
+    client.cookies.clear()
     r = client.post("/auth/refresh", json={"refresh_token": access})
     assert r.status_code == 401
 
